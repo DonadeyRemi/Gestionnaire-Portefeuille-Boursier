@@ -161,6 +161,34 @@ def write_div_port(port_name,symbole,date,valeur,frais,valeur_nette):
         erreur = -6
 
     return erreur
+
+def write_new_symb(symbole,nom,domaine,pays):
+    erreur = 0
+    symb_info_list = [symbole,nom,domaine,pays]
+    try : 
+        with open("ressources/symboles_infos.csv",'a') as symb_file :
+            writer = csv.writer(symb_file)
+            writer.writerow(symb_info_list)
+
+    except Exception as  e :
+        print(f"[Erreur] : {e}")
+        erreur = -1
+
+    return erreur
+
+def write_prix_symb(symbole,date,prix_cloture_loc):
+    erreur = 0
+    prix_info = [date,prix_cloture_loc]
+    try :
+        with open(f"ressources/prix/{symbole}_prix.csv",'a') as symb_prix_file :
+            writer = csv.writer(symb_prix_file)
+            writer.writerow(prix_info)
+
+    except Exception as e :
+        print(f"[Erreur] : {e}")
+        erreur = -1
+
+    return erreur
     
 if __name__ == "__main__" :
     print(write_achat_titre("STAG.US","10-05-2010",5,45.30,1,45.30,0))
