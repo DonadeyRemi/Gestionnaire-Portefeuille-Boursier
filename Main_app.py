@@ -5,6 +5,7 @@ import gestion_fichier as gf
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import csv
+import json
 import os
 import datetime
 
@@ -18,6 +19,14 @@ class MainApp():
         self.root.mainloop()
 
     def initWidget(self):
+        self.create_frame_new_port()
+        self.create_frame_achat_port()
+        #self.frame_achat_titre_port.pack_forget()
+
+        self.create_frame_dashboard()
+        self.event_show_dash()
+
+    def create_frame_dashboard(self):
         self.frame_dashboard = tk.Frame(self.root)
         self.frame_label = tk.Frame(self.frame_dashboard)
 
@@ -46,7 +55,6 @@ class MainApp():
         self.canvas_line_patrimoine_hist = FigureCanvasTkAgg(self.fig_line_patrimoine_hist,master=self.frame_dashboard)
         self.canvas_line_patrimoine_hist.draw()
         self.canvas_line_patrimoine_hist.get_tk_widget().grid(column=0,columnspan=2,row=1,padx=10,pady=10)
-        self.frame_dashboard.pack()
 
     def createMenu(self):
         self.Menu = tk.Menu(self.root)
@@ -71,7 +79,7 @@ class MainApp():
 
         self.root.config(menu=self.Menu)
 
-    def event_menu_new_port(self):
+    def create_frame_new_port(self):
         self.frame_new_port = tk.Frame(self.root)
 
         self.frame_info_nv_port = tk.Frame(self.frame_new_port)
@@ -101,11 +109,15 @@ class MainApp():
         self.listview_symb.pack(side=tk.TOP,fill=tk.X,padx=10,pady=5)
         self.frame_list_view_symb.pack(side=tk.RIGHT,fill=tk.Y)
 
-        frame_achat_titre = self.create_frame_achat_titre(self.frame_new_port)
-        frame_achat_titre.pack(side=tk.LEFT,fill=tk.X)
+        self.frame_achat_titre = self.create_frame_achat_titre(self.frame_new_port)
+        self.frame_achat_titre.pack(side=tk.LEFT,fill=tk.X)
 
-        #on cache le dashboard
+
+    def event_menu_new_port(self):
         self.frame_dashboard.pack_forget()
+        self.frame_achat_port.pack_forget()
+        self.frame_achat_titre_port.pack_forget()
+        self.frame_achat_titre.pack(side=tk.LEFT,fill=tk.X)
         self.frame_new_port.pack()
 
     def effacer_nom(self,event):
@@ -118,6 +130,7 @@ class MainApp():
     def valid_nom_nv_port(self,event):
         self.var_nom_port.set(self.entry_nom_nv_port.get())
         self.label_name_listview.config(text=f"Symboles présent dans le {self.var_nom_port.get()}")
+        self.listview_symb.delete(0,'end')
 
     def create_frame_achat_titre(self,root):
         frame_achat_titre = tk.Frame(self.root)
@@ -326,10 +339,65 @@ class MainApp():
         #fonction evenement pour l'analyse d'un portefeuille
         pass
 
-    def event_achat_titre(self):
-        #callback pour l'achat d'un titre dans un portefeuille deja creer, utiliser le frame deja construit de l'achat 
-        pass
+    def create_frame_achat_port(self):
+        self.frame_achat_port = tk.Frame(self.root)
 
+        self.frame_info_port = tk.Frame(self.frame_achat_port)
+        self.label_nom_port = tk.Label(self.frame_info_port, text="Nom du  portefeuille")
+        self.label_nom_port.grid(row=0,column=0,padx=5,pady=5)
+        
+        # on récupère le nom de tout les portefeuilles existant
+        portefeuilles_name = []
+    
+        i = 0
+        for root, directories, files in os.walk("ressources/portefeuilles"):  
+            if i <=  0 :
+                for file in files: # les file sont les fichiers json des portefeuilles à jours
+                    portefeuilles_name.append(file.split(".")[0])
+
+            i += 1
+
+        self.combobox_port = ttk.Combobox(self.frame_info_port,values=portefeuilles_name)
+        self.combobox_port.grid(row=1,column=0,padx=5,pady=5)
+        self.combobox_port.current(0)
+        self.combobox_port.bind("<<ComboboxSelected>>", self.select_port)
+        self.frame_info_port.pack(side=tk.TOP,fill=tk.X)
+
+        self.frame_list_view_symb_port = tk.Frame(self.frame_achat_port)
+        self.label_name_listview_port = tk.Label(self.frame_list_view_symb_port,text=f"Symboles présent dans le {self.combobox_port.get()}")
+        self.label_name_listview_port.pack(side=tk.TOP,fill=tk.X,padx=10,pady=10)
+
+        self.listview_symb_port = tk.Listbox(self.frame_list_view_symb_port)
+        self.listview_symb_port.pack(side=tk.TOP,fill=tk.X,padx=10,pady=5)
+        self.frame_list_view_symb_port.pack(side=tk.RIGHT,fill=tk.Y)
+
+        self.frame_achat_titre_port = self.create_frame_achat_titre(self.frame_achat_port)
+        self.frame_achat_titre_port.pack(side=tk.LEFT,fill=tk.X)
+
+
+    def event_achat_titre(self):
+        self.frame_dashboard.pack_forget()
+        self.frame_new_port.pack_forget()
+        self.frame_achat_titre.pack_forget()
+
+        self.frame_achat_titre_port.pack(side=tk.LEFT,fill=tk.X)
+        self.frame_achat_port.pack()
+
+    def select_port(self,event):
+        #on efface la list view
+        self.listview_symb_port.delete(0,'end')
+        
+        portefeuille_name = self.combobox_port.get()
+        self.label_name_listview_port.config(text=f"Symboles présent dans le {self.combobox_port.get()}")
+
+        #mise a jour des symboles dans le portfeuille
+        with open(f"ressources/portefeuilles/{portefeuille_name}.json",'r') as port_file:
+            dict_port = json.load(port_file)
+
+        for symb in dict_port.keys():
+            self.listview_symb_port.insert('end',symb)
+
+    
     def event_vente_titre(self):
         #callback menu vente titre portefeuille deja connu , creer nouveau frame adapter de celui de la vente
         pass
@@ -348,6 +416,9 @@ class MainApp():
 
     def event_show_dash(self):
         self.frame_new_port.pack_forget()
+        self.frame_achat_titre.pack_forget()
+        self.frame_achat_port.pack_forget()
+        self.frame_achat_titre_port.pack_forget()
         self.frame_dashboard.pack()
 
         
