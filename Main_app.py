@@ -19,8 +19,8 @@ class MainApp():
         self.root.mainloop()
 
     def initWidget(self):
-        self.create_frame_new_port()
-        self.create_frame_achat_port()
+        #self.create_frame_new_port()
+        #self.create_frame_achat_port()
         #self.frame_achat_titre_port.pack_forget()
 
         self.create_frame_dashboard()
@@ -111,17 +111,24 @@ class MainApp():
 
         self.frame_achat_titre = self.create_frame_achat_titre(self.frame_new_port)
         self.frame_achat_titre.pack(side=tk.LEFT,fill=tk.X)
+        self.frame_new_port.pack()
 
 
     def event_menu_new_port(self):
         self.frame_dashboard.pack_forget()
-        self.frame_achat_port.pack_forget()
-        self.frame_achat_titre_port.pack_forget()
-        self.frame_achat_titre.pack(side=tk.LEFT,fill=tk.X)
-        self.frame_new_port.pack()
+        try : 
+            self.frame_achat_port.destroy()
+            self.frame_achat_titre_port.destroy()
+        
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame achat titre n'existe pas")
+        
+        self.create_frame_new_port()
+        
 
     def effacer_nom(self,event):
-        print(event)
+        self.var_nom_port.set("")
 
     def select_devise(self,event):
         self.devise_port = self.combobox_devise.get()
@@ -216,7 +223,7 @@ class MainApp():
 
     def valid_info_symb(self,event):
         nom_portfeuille = self.var_nom_port.get()
-        devise_port = self.combobox_devise.get() #pas encore utilisee est enregistree mais voir pour rajouter
+        #devise_port = self.combobox_devise.get() #pas encore utilisee est enregistree mais voir pour rajouter
         symbole_name = self.var_symb.get()
         
         parts = 0
@@ -294,7 +301,8 @@ class MainApp():
             self.open_frame_max_info = True
 
     def enter_val_loc(self,event):
-        taux_conv = 0
+        print("vous avez valider le prix loc du titre")
+        taux_conv = 1
         try : 
             taux_conv = float(self.var_taux_conv.get())
         except Exception as e:
@@ -374,14 +382,19 @@ class MainApp():
         self.frame_achat_titre_port = self.create_frame_achat_titre(self.frame_achat_port)
         self.frame_achat_titre_port.pack(side=tk.LEFT,fill=tk.X)
 
+        self.frame_achat_port.pack()
+
 
     def event_achat_titre(self):
         self.frame_dashboard.pack_forget()
-        self.frame_new_port.pack_forget()
-        self.frame_achat_titre.pack_forget()
+        try : 
+            self.frame_new_port.destroy()
+            self.frame_achat_titre.destroy()
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame nv port existe pas")
 
-        self.frame_achat_titre_port.pack(side=tk.LEFT,fill=tk.X)
-        self.frame_achat_port.pack()
+        self.create_frame_achat_port()
 
     def select_port(self,event):
         #on efface la list view
@@ -415,10 +428,14 @@ class MainApp():
         pass
 
     def event_show_dash(self):
-        self.frame_new_port.pack_forget()
-        self.frame_achat_titre.pack_forget()
-        self.frame_achat_port.pack_forget()
-        self.frame_achat_titre_port.pack_forget()
+        try : 
+            self.frame_new_port.destroy()
+            self.frame_achat_titre.destroy()
+            self.frame_achat_port.destroy()
+            self.frame_achat_titre_port.destroy()
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+            print("le frame nv port et achat titre ne sont pas crée")
         self.frame_dashboard.pack()
 
         
