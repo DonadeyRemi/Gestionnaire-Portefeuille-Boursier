@@ -19,10 +19,6 @@ class MainApp():
         self.root.mainloop()
 
     def initWidget(self):
-        #self.create_frame_new_port()
-        #self.create_frame_achat_port()
-        #self.frame_achat_titre_port.pack_forget()
-
         self.create_frame_dashboard()
         self.event_show_dash()
 
@@ -123,6 +119,13 @@ class MainApp():
         except Exception as e:
             print(f"[Erreur] : {e}")
             print("le frame achat titre n'existe pas")
+
+        try :
+            self.frame_vente_port.destroy()
+
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame vente titre n'existe pas")
         
         self.create_frame_new_port()
         
@@ -355,15 +358,7 @@ class MainApp():
         self.label_nom_port.grid(row=0,column=0,padx=5,pady=5)
         
         # on récupère le nom de tout les portefeuilles existant
-        portefeuilles_name = []
-    
-        i = 0
-        for root, directories, files in os.walk("ressources/portefeuilles"):  
-            if i <=  0 :
-                for file in files: # les file sont les fichiers json des portefeuilles à jours
-                    portefeuilles_name.append(file.split(".")[0])
-
-            i += 1
+        portefeuilles_name = gf.portfeuilles_existant()
 
         self.combobox_port = ttk.Combobox(self.frame_info_port,values=portefeuilles_name)
         self.combobox_port.grid(row=1,column=0,padx=5,pady=5)
@@ -393,6 +388,21 @@ class MainApp():
         except Exception as e:
             print(f"[Erreur] : {e}")
             print("le frame nv port existe pas")
+        
+        try : 
+            self.frame_achat_port.destroy()
+            self.frame_achat_titre_port.destroy()
+
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame achat titre existe pas")
+
+        try :
+            self.frame_vente_port.destroy()
+
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame vente titre existe pas")
 
         self.create_frame_achat_port()
 
@@ -409,11 +419,151 @@ class MainApp():
 
         for symb in dict_port.keys():
             self.listview_symb_port.insert('end',symb)
+    
+    def select_port_vente(self,event):
+        print("vous avez selectionner un portefuille")
+        portefeuille_name = self.combobox_port_vente.get()
+        liste_symbole = gf.symboles_portefeuilles(portefeuille_name)
+        print(liste_symbole)
+        self.combobox_symbole_vente.config(values=liste_symbole)
+        self.combobox_symbole_vente.current(0)
 
+    def valid_vente(self,event):
+        parts_vente = 0
+        try :
+            parts_vente = float(self.var_parts_vente.get())
+
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+
+        taux_conv_vente = 1
+        try : 
+            taux_conv_vente = float(self.var_taux_conv_vente.get())
+
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+
+        val_loc_vente = 0
+        try :
+            val_loc_vente = float(self.var_val_loc_vente.get())
+
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+
+        val_port_vente = 0
+        try : 
+            val_port_vente = float(self.var_val_port_vente.get())
+
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+
+        frais_vente = 0
+        try :
+            frais_vente = float(self.var_frais_vente.get())
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+
+        er = gf.write_vente_port(self.combobox_port_vente.get(),self.combobox_symbole_vente.get(),datetime.date.today(),parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
+        if er == 0 :
+            self.var_parts_vente.set("")
+            self.var_taux_conv_vente.set("")
+            self.var_val_loc_vente.set("")
+            self.var_val_port_vente.set("")
+            self.var_frais_vente.set("")
+
+    def valid_val_loc_vente(self,event):
+        parts_vente = 0
+        try :
+            parts_vente = float(self.var_parts_vente.get())
+
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+
+        taux_conv_vente = 1
+        try : 
+            taux_conv_vente = float(self.var_taux_conv_vente.get())
+
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+
+        val_loc_vente = 0
+        try :
+            val_loc_vente = float(self.var_val_loc_vente.get())
+
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+
+        val_port_vente = round(val_loc_vente/taux_conv_vente,2)
+        self.var_val_port_vente.set(f"{val_port_vente}")
     
     def event_vente_titre(self):
-        #callback menu vente titre portefeuille deja connu , creer nouveau frame adapter de celui de la vente
-        pass
+        self.frame_dashboard.pack_forget()
+        try : 
+            self.frame_new_port.destroy()
+            self.frame_achat_titre.destroy()
+            
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame nv port existe pas")
+
+        self.create_frame_vente_port()
+
+    def create_frame_vente_port(self):
+        self.frame_vente_port = tk.Frame(self.root)
+
+        self.frame_info_vente_port = tk.Frame(self.frame_vente_port)
+        self.label_nom_vente_port = tk.Label(self.frame_info_vente_port, text="Nom du  portefeuille")
+        self.label_nom_vente_port.grid(row=0,column=0,padx=5,pady=5)
+        self.label_symb_port_vente = tk.Label(self.frame_info_vente_port,text="Symbole")
+        self.label_symb_port_vente.grid(row=0,column=1,padx=5,pady=5)
+        
+
+        liste_portefeuille = gf.portfeuilles_existant()
+        self.combobox_port_vente = ttk.Combobox(self.frame_info_vente_port,values=liste_portefeuille)
+        self.combobox_port_vente.grid(row=1,column=0,padx=5,pady=5)
+        self.combobox_port_vente.current(0)
+        self.combobox_port_vente.bind("<<ComboboxSelected>>", self.select_port_vente)
+        
+
+        liste_symbole_port = gf.symboles_portefeuilles(self.combobox_port_vente.get())
+        self.combobox_symbole_vente = ttk.Combobox(self.frame_info_vente_port,values=liste_symbole_port)
+        self.combobox_symbole_vente.grid(row=1,column=1,padx=5,pady=5)
+        self.combobox_symbole_vente.current(0)
+        self.frame_info_vente_port.pack(side=tk.TOP,fill=tk.X)
+
+        self.frame_vente_titre = tk.Frame(self.frame_vente_port)
+        self.label_parts_vente = tk.Label(self.frame_vente_titre,text="Parts")
+        self.label_parts_vente.grid(row=0,column=0,padx=5,pady=5)
+        self.var_parts_vente = tk.StringVar()
+        self.entry_parts_vente = tk.Entry(self.frame_vente_titre,textvariable=self.var_parts_vente)
+        self.entry_parts_vente.grid(row=0,column=1,padx=5,pady=5)
+        self.label_taux_conv_vente = tk.Label(self.frame_vente_titre,text="Taux de conversion")
+        self.label_taux_conv_vente.grid(row=0,column=2,padx=5,pady=5)
+        self.var_taux_conv_vente = tk.StringVar()
+        self.entry_taux_conv_vente = tk.Entry(self.frame_vente_titre,textvariable=self.var_taux_conv_vente)
+        self.entry_taux_conv_vente.grid(row=0,column=3,padx=5,pady=5)
+        self.label_val_loc_vente = tk.Label(self.frame_vente_titre,text="Valeur locale titre")
+        self.label_val_loc_vente.grid(row=1,column=0,padx=5,pady=5)
+        self.var_val_loc_vente = tk.StringVar()
+        self.entry_val_loc_vente = tk.Entry(self.frame_vente_titre,textvariable=self.var_val_loc_vente)
+        self.entry_val_loc_vente.grid(row=1,column=1,padx=5,pady=5)
+        self.entry_val_loc_vente.bind("<Return>",self.valid_val_loc_vente)
+        self.label_val_port_vente = tk.Label(self.frame_vente_titre,text="Valeur portefeuille titre")
+        self.label_val_port_vente.grid(row=1,column=2,padx=5,pady=5)
+        self.var_val_port_vente = tk.StringVar()
+        self.entry_val_port_vente = tk.Entry(self.frame_vente_titre,textvariable=self.var_val_port_vente)
+        self.entry_val_port_vente.grid(row=1,column=3,padx=5,pady=5)
+        self.label_frais_vente = tk.Label(self.frame_vente_titre,text="Frais de vente")
+        self.label_frais_vente.grid(row=2,column=0)
+        self.var_frais_vente = tk.StringVar()
+        self.entry_frais_vente = tk.Entry(self.frame_vente_titre,textvariable=self.var_frais_vente)
+        self.entry_frais_vente.grid(row=2,column=1,padx=5,pady=5)
+        self.button_validate_vente = tk.Button(self.frame_vente_titre,text="Valider la vente")
+        self.button_validate_vente.grid(row=2,column=3,padx=5,pady=5)
+        self.button_validate_vente.bind("<Button-1>",self.valid_vente)
+        self.frame_vente_titre.pack(side=tk.TOP,fill=tk.X)
+
+        self.frame_vente_port.pack()
 
     def event_dividende(self):
         #callback menu pour ajouter un dividende sur un titre toujours dans au moins un portfeuille
@@ -431,11 +581,25 @@ class MainApp():
         try : 
             self.frame_new_port.destroy()
             self.frame_achat_titre.destroy()
-            self.frame_achat_port.destroy()
-            self.frame_achat_titre_port.destroy()
         except Exception as e :
             print(f"[Erreur] : {e}")
-            print("le frame nv port et achat titre ne sont pas crée")
+            print("le frame nv port n'existe pas")
+
+        try : 
+            self.frame_achat_port.destroy()
+            self.frame_achat_titre_port.destroy()
+
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame achat titre n'existe pas")
+
+        try :
+            self.frame_vente_port.destroy()
+
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame vente titre n'existe pas")
+
         self.frame_dashboard.pack()
 
         

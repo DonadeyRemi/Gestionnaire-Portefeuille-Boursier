@@ -235,6 +235,30 @@ def write_port_history(portefeuille,date,somme_inv_port_loc,somme_inv_port,parts
         erreur = -1
 
     return erreur
+
+def portfeuilles_existant():
+    # on récupère le nom de tout les portefeuilles existant
+    portefeuilles_name = []
+
+    i = 0
+    for root, directories, files in os.walk("ressources/portefeuilles"):  
+        if i <=  0 :
+            for file in files: # les file sont les fichiers json des portefeuilles à jours
+                portefeuilles_name.append(file.split(".")[0])
+
+        i += 1
+
+    return portefeuilles_name
+
+def symboles_portefeuilles(portefeuille):
+    liste_symbole = []
+    with open(f"ressources/portefeuilles/{portefeuille}.json",'r') as port_file:
+        dict_port = json.load(port_file)
+
+    for symb in dict_port.keys():
+        liste_symbole.append(symb)
+
+    return liste_symbole
     
 if __name__ == "__main__" :
     print(write_achat_titre("STAG.US","10-05-2010",5,45.30,1,45.30,0))
