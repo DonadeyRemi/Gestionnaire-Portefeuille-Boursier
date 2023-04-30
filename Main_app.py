@@ -226,7 +226,20 @@ class MainApp():
         return frame_achat_titre
 
     def valid_info_symb(self,event):
-        nom_portfeuille = self.var_nom_port.get()
+        nom_portfeuille =  None
+        try :
+            nom_portfeuille = self.var_nom_port.get()
+
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+            print("ce n'est pas le portefeuille dans un entry")
+
+        try :
+            nom_portfeuille = self.combobox_port.get()
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("ce n'est pas le nom du portefeuille dans la combobox")
+        
         #devise_port = self.combobox_devise.get() #pas encore utilisee est enregistree mais voir pour rajouter
         symbole_name = self.var_symb.get()
         
@@ -379,8 +392,8 @@ class MainApp():
         self.label_name_listview_port = tk.Label(self.frame_list_view_symb_port,text=f"Symboles présent dans le {self.combobox_port.get()}")
         self.label_name_listview_port.pack(side=tk.TOP,fill=tk.X,padx=10,pady=10)
 
-        self.listview_symb_port = tk.Listbox(self.frame_list_view_symb_port)
-        self.listview_symb_port.pack(side=tk.TOP,fill=tk.X,padx=10,pady=5)
+        self.listview_symb = tk.Listbox(self.frame_list_view_symb_port)
+        self.listview_symb.pack(side=tk.TOP,fill=tk.X,padx=10,pady=5)
         self.frame_list_view_symb_port.pack(side=tk.RIGHT,fill=tk.Y)
 
         self.frame_achat_titre_port = self.create_frame_achat_titre(self.frame_achat_port)
