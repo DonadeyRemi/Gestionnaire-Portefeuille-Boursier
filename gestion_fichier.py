@@ -3,8 +3,8 @@ import json
 import os
 
 def write_achat_titre(symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais):
+    erreur = 0
     achat = [symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais,"ACHAT"]
-
     try : 
         with open("ressources/achat_vente.csv",'a') as ac_vt_file :
             writer_obj = csv.writer(ac_vt_file)
@@ -12,10 +12,10 @@ def write_achat_titre(symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais)
 
     except Exception as e :
         print(f"[Erreur] : {e}")
-        return -1
+        erreur =  -1
     
-    else : 
-        return 0
+    return erreur
+        
     
 def write_vente_titre(symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais) :
     vente = [symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais,"VENTE"]
@@ -208,9 +208,9 @@ def write_new_symb(symbole,nom,domaine,pays):
 
     return erreur
 
-def write_prix_symb(symbole,date,prix_cloture_loc):
+def write_prix_symb(symbole,date,heure,prix_cloture_loc):
     erreur = 0
-    prix_info = [date,prix_cloture_loc]
+    prix_info = [date,heure,prix_cloture_loc]
     try :
         with open(f"ressources/prix/{symbole}_prix.csv",'a') as symb_prix_file :
             writer = csv.writer(symb_prix_file)
@@ -222,9 +222,9 @@ def write_prix_symb(symbole,date,prix_cloture_loc):
 
     return erreur
 
-def write_port_history(portefeuille,date,somme_inv_port_loc,somme_inv_port,parts,somme_act_port_loc,somme_act_port,dividendes,frais_div,frais_ac_vt):
+def write_port_history(portefeuille,date,heure,somme_inv_port_loc,somme_inv_port,parts,somme_act_port_loc,somme_act_port,dividendes,frais_div,frais_ac_vt):
     erreur = 0
-    port_list_info = [date,parts,somme_inv_port_loc,somme_inv_port,somme_act_port_loc,somme_act_port,dividendes,frais_div,frais_ac_vt]
+    port_list_info = [date,heure,parts,somme_inv_port_loc,somme_inv_port,somme_act_port_loc,somme_act_port,dividendes,frais_div,frais_ac_vt]
     try :
         with open(f"ressources/portefeuilles/histoty/{portefeuille}_history.csv",'a') as port_hist_file:
             writer = csv.writer(port_hist_file)

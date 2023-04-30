@@ -8,6 +8,7 @@ import csv
 import json
 import os
 import datetime
+import time
 
 class MainApp():
     def __init__(self):
@@ -253,6 +254,12 @@ class MainApp():
         except Exception as e:
             print(f"[Erreur] : {e}")
 
+        taux_conv_achat = 1
+        try : 
+            taux_conv_achat = float(self.var_taux_conv.get())
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+
         somme_symb_loc = parts*val_symb_loc
         somme_symb_port = parts*val_symb_port
 
@@ -267,6 +274,8 @@ class MainApp():
                 writer.writerow(liste_info_symb)
 
         er = gf.write_achat_port(nom_portfeuille,symbole_name,str(datetime.date.today()),parts,val_symb_loc,val_symb_port,frais_achat)
+        gf.write_achat_titre(symbole_name,datetime.date.today(),parts,val_symb_loc,taux_conv_achat,val_symb_port,frais_achat)
+        gf.write_prix_symb(symbole_name,datetime.date.today(),datetime.datetime.now().time(),val_symb_loc)
         if er == 0 :
             self.listview_symb.insert('end',symbole_name)
 
@@ -464,6 +473,9 @@ class MainApp():
             print(f"[Erreur] : {e}")
 
         er = gf.write_vente_port(self.combobox_port_vente.get(),self.combobox_symbole_vente.get(),datetime.date.today(),parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
+        gf.write_vente_titre(self.combobox_symbole_vente.get(),datetime.date.today(),parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
+        gf.write_prix_symb(self.combobox_symbole_vente.get(),datetime.date.today(),datetime.datetime.now().time(),val_loc_vente)
+
         if er == 0 :
             self.var_parts_vente.set("")
             self.var_taux_conv_vente.set("")
