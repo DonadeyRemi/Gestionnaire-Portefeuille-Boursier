@@ -7,7 +7,7 @@ def write_achat_titre(symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais)
     erreur = 0
     achat = [symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais,"ACHAT"]
     try : 
-        with open("ressources/achat_vente.csv",'a') as ac_vt_file :
+        with open("ressources/achat_vente.csv",'a',newline='') as ac_vt_file :
             writer_obj = csv.writer(ac_vt_file)
             writer_obj.writerow(achat)
 
@@ -22,7 +22,7 @@ def write_vente_titre(symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais)
     vente = [symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais,"VENTE"]
 
     try : 
-        with open("ressources/achat_vente.csv",'a') as ac_vt_file :
+        with open("ressources/achat_vente.csv",'a',newline='') as ac_vt_file :
             writer_obj = csv.writer(ac_vt_file)
             writer_obj.writerow(vente)
 
@@ -37,7 +37,7 @@ def write_dividend(symbole,date,valeur,frais,valeur_nette) :
     dividende = [symbole,date,valeur,frais,valeur_nette]
 
     try :
-        with open("ressources/dividendes.csv",'a') as div_file :
+        with open("ressources/dividendes.csv",'a',newline='') as div_file :
             writer_obj = csv.writer(div_file)
             writer_obj.writerow(dividende)
 
@@ -124,7 +124,7 @@ def write_achat_port(port_name,symbole,date,parts,val_symb_loc,val_symb_port,fra
         port_list_info = [date,datetime.datetime.now().time(),parts,parts*val_symb_loc,parts*val_symb_port,parts*val_symb_loc,parts*val_symb_port,frais,0,0]
     
     try :
-        with open(f"ressources/portefeuilles/history/{port_name}_history.csv",'a') as port_hist_file:
+        with open(f"ressources/portefeuilles/history/{port_name}_history.csv",'a',newline='') as port_hist_file:
             writer = csv.writer(port_hist_file)
             writer.writerow(port_list_info)
 
@@ -197,7 +197,7 @@ def write_vente_port(port_name,symbole,date,parts,valeur_loc,taux_conv,valeur_po
 
         #on enregistre dans le fichier cette nouvelle ligne
         try :
-            with open(f"ressources/portefeuilles/history/{port_name}_history.csv",'a') as port_hist_file:
+            with open(f"ressources/portefeuilles/history/{port_name}_history.csv",'a',newline='') as port_hist_file:
                 writer = csv.writer(port_hist_file)
                 writer.writerow(port_list_info)
 
@@ -277,7 +277,7 @@ def write_new_symb(symbole,nom,domaine,pays):
     erreur = 0
     symb_info_list = [symbole,nom,domaine,pays]
     try : 
-        with open("ressources/symboles_infos.csv",'a') as symb_file :
+        with open("ressources/symboles_infos.csv",'a',newline='') as symb_file :
             writer = csv.writer(symb_file)
             writer.writerow(symb_info_list)
 
@@ -291,7 +291,7 @@ def write_prix_symb(symbole,date,heure,prix_cloture_loc):
     erreur = 0
     prix_info = [date,heure,prix_cloture_loc]
     try :
-        with open(f"ressources/prix/{symbole}_prix.csv",'a') as symb_prix_file :
+        with open(f"ressources/prix/{symbole}_prix.csv",'a',newline='') as symb_prix_file :
             writer = csv.writer(symb_prix_file)
             writer.writerow(prix_info)
 

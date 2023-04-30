@@ -430,7 +430,7 @@ class MainApp():
 
     def select_port(self,event):
         #on efface la list view
-        self.listview_symb_port.delete(0,'end')
+        self.listview_symb.delete(0,'end')
         
         portefeuille_name = self.combobox_port.get()
         self.label_name_listview_port.config(text=f"Symboles présent dans le {self.combobox_port.get()}")
@@ -440,7 +440,7 @@ class MainApp():
             dict_port = json.load(port_file)
 
         for symb in dict_port.keys():
-            self.listview_symb_port.insert('end',symb)
+            self.listview_symb.insert('end',symb)
     
     def select_port_vente(self,event):
         print("vous avez selectionner un portefuille")
