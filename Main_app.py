@@ -23,25 +23,47 @@ class MainApp():
         self.create_frame_dashboard()
         self.event_show_dash()
 
-    def create_frame_dashboard(self):
+    def event_update_dashboard(self,event):
+        #apport des figures
+        self.fig_pie_tot,self.ax_pie_tot,self.patrimoine_tot = creation_figure.figures_patrimoine_tot(self.combobox_args.get())
+        self.label_patrimoine_tot.config(text=f"{self.combobox_args.get()} : {round(self.patrimoine_tot,2)}") # mise a jour 
+
+        self.canvas_pie_patrimoine_tot = FigureCanvasTkAgg(self.fig_pie_tot, master=self.frame_dashboard)  # A tk.DrawingArea.
+        self.canvas_pie_patrimoine_tot.draw()
+        self.canvas_pie_patrimoine_tot.get_tk_widget().grid(column=1,row=0,padx=10,pady=10)
+
+        self.fig_line_patrimoine_hist,self.ax_line_patrimoine_hist = plt.subplots(figsize=(10,5))
+        self.ax_line_patrimoine_hist.plot([0,1,2,4,5],[10,9,15,16,17])
+        self.ax_line_patrimoine_hist.set_title("Evolution du patrimoine")
+
+        self.canvas_line_patrimoine_hist = FigureCanvasTkAgg(self.fig_line_patrimoine_hist,master=self.frame_dashboard)
+        self.canvas_line_patrimoine_hist.draw()
+        self.canvas_line_patrimoine_hist.get_tk_widget().grid(column=0,columnspan=2,row=1,padx=10,pady=10)
+
+    def create_frame_dashboard(self,init=True):
         self.frame_dashboard = tk.Frame(self.root)
         self.frame_label = tk.Frame(self.frame_dashboard)
 
         self.label_patrimoine = tk.Label(self.frame_label,text="Patrimoine Total")
         self.label_patrimoine.pack(side=tk.TOP,fill=tk.Y,padx=10,pady=10)
 
+        list_args_show = ["parts","somme_inv_loc","somme_inv_port","somme_act_loc","somme_act_port"]
+        self.combobox_args = ttk.Combobox(self.frame_label,values=list_args_show)
+        
+        self.combobox_args.current(4)
+        self.combobox_args.pack(side=tk.TOP,fill=tk.Y,padx=10,pady=5)
+        self.combobox_args.bind("<<ComboboxSelected>>",self.event_update_dashboard)
+
         self.label_patrimoine_tot = tk.Label(self.frame_label,text="........")
         self.label_patrimoine_tot.pack(side=tk.TOP,fill=tk.Y,padx=10,pady=5)
 
         self.frame_label.grid(column=0,row=0)
 
-        #création du plot ici car cela évite de charger les données avant l'ouverture de la fenetre mais une fois qu'elle est ouverte
-        self.fig_pie_patrimoine_tot,self.ax_pie_patrimoine_tot = plt.subplots(figsize=(5,5))
-        self.ax_pie_patrimoine_tot.pie([30,25,45],labels=["Portefeuille-1","Portefeuille-2","Portefeuille-3"])
-        self.ax_pie_patrimoine_tot.set_title("Répartition du patrimoine")
-        #plt.legend()
+        #apport des figures
+        self.fig_pie_tot,self.ax_pie_tot,self.patrimoine_tot = creation_figure.figures_patrimoine_tot(self.combobox_args.get())
+        self.label_patrimoine_tot.config(text=f"{self.combobox_args.get()} : {round(self.patrimoine_tot,2)}") # mise a jour 
 
-        self.canvas_pie_patrimoine_tot = FigureCanvasTkAgg(self.fig_pie_patrimoine_tot, master=self.frame_dashboard)  # A tk.DrawingArea.
+        self.canvas_pie_patrimoine_tot = FigureCanvasTkAgg(self.fig_pie_tot, master=self.frame_dashboard)  # A tk.DrawingArea.
         self.canvas_pie_patrimoine_tot.draw()
         self.canvas_pie_patrimoine_tot.get_tk_widget().grid(column=1,row=0,padx=10,pady=10)
 

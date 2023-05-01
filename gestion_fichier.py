@@ -130,8 +130,9 @@ def write_achat_port(port_name,symbole,date,parts,val_symb_loc,val_symb_port,fra
 
     except Exception as  e :
         print(f"[Erreur] : {e}")
-        
-    
+
+    add_line_patrimoine_hist()
+
     return erreur
 
 def write_vente_port(port_name,symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais):
@@ -205,7 +206,9 @@ def write_vente_port(port_name,symbole,date,parts,valeur_loc,taux_conv,valeur_po
             print(f"[Erreur] : {e}")
 
     else :  
-        erreur = -6 
+        erreur = -6
+
+    add_line_patrimoine_hist()
 
     return erreur
 
@@ -325,6 +328,40 @@ def symboles_portefeuilles(portefeuille):
         liste_symbole.append(symb)
 
     return liste_symbole
+
+def add_line_patrimoine_hist():
+    #port_list_info = [date,heure,parts,somme_inv_loc,somme_inv_port,somme_act_loc,somme_act_port,frais_ac_vt,dividendes,frais_div]
+    parts_pat = 0
+    somme_inv_loc_pat = 0
+    somme_inv_port_pat = 0
+    somme_act_loc_pat = 0
+    somme_act_port_pat = 0
+    frais_ac_vt_pat = 0
+    dividendes_pat = 0
+    frais_div_pat = 0 
+    i = 0
+    for root, directories, files in os.walk("ressources/portefeuilles/history"):  
+        if i <=  0 :
+            for file in files: # les file sont les fichiers json des portefeuilles à jours
+                with open(f"ressources/portefeuilles/history/{file}",'r',newline='') as file_hist_port :
+                    last_line = None
+                    for row in csv.reader(file_hist_port) :
+                        last_line = row
+
+                    parts_pat += float(last_line[2])
+                    somme_inv_loc_pat += float(last_line[3])
+                    somme_inv_port_pat += float(last_line[4])
+                    somme_act_loc_pat += float(last_line[5])
+                    somme_act_port_pat += float(last_line[6])
+                    frais_ac_vt_pat += float(last_line[7])
+                    dividendes_pat += float(last_line[8])
+                    frais_div_pat += float(last_line[9])
+
+        i += 1
+
+    with open(f"ressources/portefeuilles/history/patrimoine_hist.csv",'a',newline='') as pat_hist_file :
+        writer = csv.writer(pat_hist_file)
+        writer.writerow([datetime.date.today(),datetime.datetime.now().time(),parts_pat,somme_inv_loc_pat,somme_inv_port_pat,somme_act_loc_pat,somme_act_port_pat,frais_ac_vt_pat,dividendes_pat,frais_div_pat])
     
 if __name__ == "__main__" :
     print(write_achat_titre("STAG.US","10-05-2010",5,45.30,1,45.30,0))
