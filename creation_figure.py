@@ -25,27 +25,44 @@ def repartition_actifs_parts(portefeuille,arg="parts"):
     ax.set_title(f"Répartitions des actifs par {arg}")
     plt.legend()
 
-    return erreur
+    return erreur,fig
 
-def figures_patrimoine_tot():
-    patrimoine_tot = 0
+def figures_patrimoine_tot(arg="somme_act_port"):
+    patrimoine_tot = []
     portefeuilles_name = []
     
     i = 0
     for root, directories, files in os.walk("ressources/portefeuilles"):  
         if i <=  0 :
             for file in files: # les file sont les fichiers json des portefeuilles à jours
-                portefeuilles_name.append(file.split(".")[0])
-                with open(f"ressources/portefeuilles/{file}.json",'r') as port_file :
+                file_name_without_ext = file.split(".")[0]
+                portefeuilles_name.append(file_name_without_ext)
+                with open(f"ressources/portefeuilles/{file_name_without_ext}.json",'r') as port_file :
                     dict_port = json.load(port_file)
 
                 # on fait les calculs
+                somme_arg = 0
                 for symbole in dict_port.keys():
-                    pass
+                    somme_arg += dict_port[symbole][arg]
+
+                patrimoine_tot.append(somme_arg)
+
 
         i += 1
+
+    # création de la figure
+    fig,ax = plt.subplots(figsize=(8,8))
+    ax.pie(patrimoine_tot,labels=portefeuilles_name,explode=[0.05 for i in range(len(patrimoine_tot))])
+
+    ax.set_title(f"Répartitions des {arg} selon les portefeuilles")
+    plt.legend()
+
+    return fig
 
 
 
 if __name__ == "__main__" :
-    pie_patrimoine_tot()
+    fig1 = figures_patrimoine_tot()
+    fig2 = figures_patrimoine_tot("parts")
+    fig3 = repartition_actifs_parts("Portefeuille-1","somme_act_port")
+    plt.show()
