@@ -15,6 +15,7 @@ class MainApp():
     def __init__(self):
         self.root = tk.Tk()
         self.createMenu()
+        self.date_choose = None
 
         self.initWidget()
 
@@ -254,7 +255,8 @@ class MainApp():
         return frame_achat_titre
 
     def valid_info_symb(self,event):
-        self.date_choose = datetime.date.today()
+        if self.date_choose == None : 
+            self.date_choose = datetime.date.today()
         nom_portfeuille =  None
         try :
             nom_portfeuille = self.var_nom_port.get()
@@ -315,9 +317,9 @@ class MainApp():
                 writer = csv.writer(symb_info_file)
                 writer.writerow(liste_info_symb)
 
-        er = gf.write_achat_port(nom_portfeuille,symbole_name,self.date_choose,parts,val_symb_loc,val_symb_port,frais_achat)
-        gf.write_achat_titre(symbole_name,self.date_choose,parts,val_symb_loc,taux_conv_achat,val_symb_port,frais_achat)
-        gf.write_prix_symb(symbole_name,self.date_choose,datetime.datetime.now().time(),val_symb_loc)
+        er = gf.write_achat_port(nom_portfeuille,symbole_name,str(self.date_choose),parts,val_symb_loc,val_symb_port,frais_achat)
+        gf.write_achat_titre(symbole_name,str(self.date_choose),parts,val_symb_loc,taux_conv_achat,val_symb_port,frais_achat)
+        gf.write_prix_symb(symbole_name,str(self.date_choose),datetime.datetime.now().time(),val_symb_loc)
         if er == 0 :
             self.listview_symb.insert('end',symbole_name)
 
@@ -534,9 +536,9 @@ class MainApp():
         except Exception as e:
             print(f"[Erreur] : {e}")
 
-        er = gf.write_vente_port(self.combobox_port_vente.get(),self.combobox_symbole_vente.get(),self.date_choose,parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
-        gf.write_vente_titre(self.combobox_symbole_vente.get(),self.date_choose,parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
-        gf.write_prix_symb(self.combobox_symbole_vente.get(),self.date_choose,datetime.datetime.now().time(),val_loc_vente)
+        er = gf.write_vente_port(self.combobox_port_vente.get(),self.combobox_symbole_vente.get(),str(self.date_choose),parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
+        gf.write_vente_titre(self.combobox_symbole_vente.get(),str(self.date_choose),parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
+        gf.write_prix_symb(self.combobox_symbole_vente.get(),str(self.date_choose),datetime.datetime.now().time(),val_loc_vente)
 
         if er == 0 :
             self.var_parts_vente.set("")
@@ -635,7 +637,7 @@ class MainApp():
         self.button_validate_vente = tk.Button(self.frame_vente_titre,text="Valider la vente")
         self.button_validate_vente.grid(row=2,column=3,padx=5,pady=5)
         self.button_validate_vente.bind("<Button-1>",self.valid_vente)
-        self.button_date_chooser = tk.Button(self.frame_achat_info,text="Choisir une date")
+        self.button_date_chooser = tk.Button(self.frame_vente_titre,text="Choisir une date")
         self.button_date_chooser.grid(row=3,column=2,padx=5,pady=5)
         self.button_date_chooser.bind("<Button-1>",self.date_chooser_event)
         
@@ -653,7 +655,46 @@ class MainApp():
 
     def event_update_symb_hist(self):
         #callback menu pour ajouter une ligne sur l'historique d'un symbole deja enregsitrer dans un fichier
-        pass
+        toplevel_update_symb = tk.Toplevel(self.root)
+
+        liste_port = gf.portfeuilles_existant()
+        liste_symb = []
+        for port in liste_port :
+            liste_symb = gf.symboles_portefeuilles(port)
+            for symb in liste_symb :
+                if symb not in liste_symb :
+                    liste_symb.append(symb)
+
+        self.combobox_symb = ttk.Combobox(toplevel_update_symb,values=liste_symb)
+        self.combobox_symb.current(0)
+        self.combobox_symb.pack(side=tk.TOP)
+
+        self.button_date_chooser = tk.Button(toplevel_update_symb,text="Choisir une date")
+        self.button_date_chooser.pack(side=tk.TOP)
+        self.button_date_chooser.bind("<Button-1>",self.date_chooser_event)
+
+        label_prix_update = tk.Label(toplevel_update_symb,text="Prix (locale)")
+        label_prix_update.pack(side=tk.LEFT)
+
+        self.var_prix_update = tk.StringVar()
+        entry_prix_update = tk.Entry(toplevel_update_symb,textvariable=self.var_prix_update)
+        entry_prix_update.pack(side=tk.RIGHT)
+        entry_prix_update.bind("<Return>",self.validate_update_symb_event)
+
+        button_validate_update_prix_symb = tk.Button(toplevel_update_symb,text="Valider le prix")
+        button_validate_update_prix_symb.bind("<Button-1>",self.validate_update_symb_event)
+        button_validate_update_prix_symb.pack(side=tk.BOTTOM)
+
+    def validate_update_symb_event(self,event):
+        self.date_choose = datetime.date.today()
+        prix_symb_update = 0 
+        try : 
+            prix_symb_update = float(self.var_prix_update.get())
+
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+
+        gf.write_prix_symb(self.combobox_symb.get(),self.date_choose,datetime.datetime.now().time(),prix_symb_update)
 
     def event_show_dash(self):
         try : 
