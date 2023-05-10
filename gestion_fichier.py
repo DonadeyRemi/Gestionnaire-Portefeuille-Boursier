@@ -3,9 +3,9 @@ import json
 import os
 import datetime
 
-def write_achat_titre(symbole,datetime,parts,valeur_loc,taux_conv,valeur_port,frais):
+def write_achat_titre(symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais):
     erreur = 0
-    achat = [symbole,datetime,parts,valeur_loc,taux_conv,valeur_port,frais,"ACHAT"]
+    achat = [symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais,"ACHAT"]
     try : 
         with open("ressources/achat_vente.csv",'a',newline='') as ac_vt_file :
             writer_obj = csv.writer(ac_vt_file)
@@ -18,8 +18,8 @@ def write_achat_titre(symbole,datetime,parts,valeur_loc,taux_conv,valeur_port,fr
     return erreur
         
     
-def write_vente_titre(symbole,datetime,parts,valeur_loc,taux_conv,valeur_port,frais) :
-    vente = [symbole,datetime,parts,valeur_loc,taux_conv,valeur_port,frais,"VENTE"]
+def write_vente_titre(symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais) :
+    vente = [symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais,"VENTE"]
 
     try : 
         with open("ressources/achat_vente.csv",'a',newline='') as ac_vt_file :
@@ -33,8 +33,8 @@ def write_vente_titre(symbole,datetime,parts,valeur_loc,taux_conv,valeur_port,fr
     else :
         return 0
     
-def write_dividend(symbole,datetime,valeur,frais,valeur_nette) :
-    dividende = [symbole,datetime,valeur,frais,valeur_nette]
+def write_dividend(symbole,date,valeur,frais,valeur_nette) :
+    dividende = [symbole,date,valeur,frais,valeur_nette]
 
     try :
         with open("ressources/dividendes.csv",'a',newline='') as div_file :
@@ -48,7 +48,7 @@ def write_dividend(symbole,datetime,valeur,frais,valeur_nette) :
     else : 
         return 0
     
-def write_achat_port(port_name,symbole,datetime,parts,val_symb_loc,val_symb_port,frais):
+def write_achat_port(port_name,symbole,date,parts,val_symb_loc,val_symb_port,frais):
     erreur = 0
     if os.path.exists(f"ressources/portefeuilles/{port_name}.json") :
         try :
@@ -61,7 +61,7 @@ def write_achat_port(port_name,symbole,datetime,parts,val_symb_loc,val_symb_port
             return -2
         
         if port_dict.get(symbole,0) == 0 :
-            port_dict[symbole] = {"date_debut" : datetime, "parts" : parts, "valeur_moy_inv_loc" : val_symb_loc,"valeur_moy_inv_port":val_symb_port,"somme_inv_loc" : parts*val_symb_loc, "somme_inv_port":parts*val_symb_port, "frais_ac_vt":frais,"val_symb_act_loc":val_symb_loc,"val_symb_act_port":val_symb_port,"somme_act_loc":parts*val_symb_loc,"somme_act_port":parts*val_symb_port,"dividende":0,"frais_div":0}
+            port_dict[symbole] = {"date_debut" : date, "parts" : parts, "valeur_moy_inv_loc" : val_symb_loc,"valeur_moy_inv_port":val_symb_port,"somme_inv_loc" : parts*val_symb_loc, "somme_inv_port":parts*val_symb_port, "frais_ac_vt":frais,"val_symb_act_loc":val_symb_loc,"val_symb_act_port":val_symb_port,"somme_act_loc":parts*val_symb_loc,"somme_act_port":parts*val_symb_port,"dividende":0,"frais_div":0}
 
         else :
             #moyenne ponderee
@@ -110,9 +110,9 @@ def write_achat_port(port_name,symbole,datetime,parts,val_symb_loc,val_symb_port
             dividendes_tot += port_dict[symb]["dividende"]
             frais_div_tot += port_dict[symb]["frais_div"]
 
-        port_list_info = [datetime,parts_tot,somme_inv_loc_tot,somme_inv_port_tot,somme_act_loc_tot,somme_act_port_tot,frais_ac_vt_tot,dividendes_tot,frais_div_tot]
+        port_list_info = [date,datetime.datetime.now().time(),parts_tot,somme_inv_loc_tot,somme_inv_port_tot,somme_act_loc_tot,somme_act_port_tot,frais_ac_vt_tot,dividendes_tot,frais_div_tot]
     else :
-        port_dict = {symbole : {"date_debut" : datetime, "parts" : parts, "valeur_moy_inv_loc" : val_symb_loc,"valeur_moy_inv_port":val_symb_port,"somme_inv_loc" : parts*val_symb_loc, "somme_inv_port":parts*val_symb_port, "frais_ac_vt":frais,"val_symb_act_loc":val_symb_loc,"val_symb_act_port":val_symb_port,"somme_act_loc":parts*val_symb_loc,"somme_act_port":parts*val_symb_port,"dividende":0,"frais_div":0}}
+        port_dict = {symbole : {"date_debut" : date, "parts" : parts, "valeur_moy_inv_loc" : val_symb_loc,"valeur_moy_inv_port":val_symb_port,"somme_inv_loc" : parts*val_symb_loc, "somme_inv_port":parts*val_symb_port, "frais_ac_vt":frais,"val_symb_act_loc":val_symb_loc,"val_symb_act_port":val_symb_port,"somme_act_loc":parts*val_symb_loc,"somme_act_port":parts*val_symb_port,"dividende":0,"frais_div":0}}
         try :
             with open(f"ressources/portefeuilles/{port_name}.json",'w') as port_file:
                 json.dump(port_dict,port_file)
@@ -121,7 +121,7 @@ def write_achat_port(port_name,symbole,datetime,parts,val_symb_loc,val_symb_port
             print(f"[Ereur] : {e}")
             return -3
         
-        port_list_info = [datetime,parts,parts*val_symb_loc,parts*val_symb_port,parts*val_symb_loc,parts*val_symb_port,frais,0,0]
+        port_list_info = [date,datetime.datetime.now().time(),parts,parts*val_symb_loc,parts*val_symb_port,parts*val_symb_loc,parts*val_symb_port,frais,0,0]
     
     try :
         with open(f"ressources/portefeuilles/history/{port_name}_history.csv",'a',newline='') as port_hist_file:
@@ -135,7 +135,7 @@ def write_achat_port(port_name,symbole,datetime,parts,val_symb_loc,val_symb_port
 
     return erreur
 
-def write_vente_port(port_name,symbole,datetime,parts,valeur_loc,taux_conv,valeur_port,frais):
+def write_vente_port(port_name,symbole,date,parts,valeur_loc,taux_conv,valeur_port,frais):
     erreur = 0
     if os.path.exists(f"ressources/portefeuilles/{port_name}.json") :
         try :
@@ -194,7 +194,7 @@ def write_vente_port(port_name,symbole,datetime,parts,valeur_loc,taux_conv,valeu
             frais_ac_vt_tot += port_dict[symb]["frais_ac_vt"]
             dividendes_tot += port_dict[symb]["dividende"]
             frais_div_tot += port_dict[symb]["frais_div"]
-        port_list_info = [datetime,parts_tot,somme_inv_loc_tot,somme_inv_port_tot,somme_act_loc_tot,somme_act_port_tot,frais_ac_vt_tot,dividendes_tot,frais_div_tot]
+        port_list_info = [date,datetime.datetime.now().time(),parts_tot,somme_inv_loc_tot,somme_inv_port_tot,somme_act_loc_tot,somme_act_port_tot,frais_ac_vt_tot,dividendes_tot,frais_div_tot]
 
         #on enregistre dans le fichier cette nouvelle ligne
         try :
@@ -243,7 +243,7 @@ def upload_symbole_val_port(port_name,symbole,valeur_act_loc,valeur_act_port):
 
     return erreur
 
-def write_div_port(port_name,symbole,datetime,valeur,frais,valeur_nette):
+def write_div_port(port_name,symbole,date,valeur,frais,valeur_nette):
     erreur = 0
     if os.path.exists(f"ressources/portefeuilles/{port_name}.json") :
         try :
@@ -290,9 +290,9 @@ def write_new_symb(symbole,nom,domaine,pays):
 
     return erreur
 
-def write_prix_symb(symbole,datetime,prix_cloture_loc):
+def write_prix_symb(symbole,date,heure,prix_cloture_loc):
     erreur = 0
-    prix_info = [datetime,prix_cloture_loc]
+    prix_info = [date,heure,prix_cloture_loc]
     try :
         with open(f"ressources/prix/{symbole}_prix.csv",'a',newline='') as symb_prix_file :
             writer = csv.writer(symb_prix_file)
