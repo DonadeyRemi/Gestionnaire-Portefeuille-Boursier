@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkcalendar import Calendar
 import creation_figure
 import gestion_fichier as gf
 import matplotlib.pyplot as plt
@@ -243,11 +244,17 @@ class MainApp():
         self.button_validate_info_symb.grid(row=3,column=4,padx=5,pady=5)
         self.button_validate_info_symb.bind("<Button-1>",self.valid_info_symb)
 
+        self.button_date_chooser = tk.Button(self.frame_achat_info,text="Choisir une date")
+        self.button_date_chooser.grid(row=3,column=2,padx=5,pady=5)
+        self.button_date_chooser.bind("<Button-1>",self.date_chooser_event)
+        
+        
         self.frame_achat_info.pack(side=tk.TOP,fill=tk.X)
 
         return frame_achat_titre
 
     def valid_info_symb(self,event):
+        self.date_choose = datetime.date.today()
         nom_portfeuille =  None
         try :
             nom_portfeuille = self.var_nom_port.get()
@@ -308,9 +315,9 @@ class MainApp():
                 writer = csv.writer(symb_info_file)
                 writer.writerow(liste_info_symb)
 
-        er = gf.write_achat_port(nom_portfeuille,symbole_name,str(datetime.date.today()),parts,val_symb_loc,val_symb_port,frais_achat)
-        gf.write_achat_titre(symbole_name,datetime.date.today(),parts,val_symb_loc,taux_conv_achat,val_symb_port,frais_achat)
-        gf.write_prix_symb(symbole_name,datetime.date.today(),datetime.datetime.now().time(),val_symb_loc)
+        er = gf.write_achat_port(nom_portfeuille,symbole_name,self.date_choose,parts,val_symb_loc,val_symb_port,frais_achat)
+        gf.write_achat_titre(symbole_name,self.date_choose,parts,val_symb_loc,taux_conv_achat,val_symb_port,frais_achat)
+        gf.write_prix_symb(symbole_name,self.date_choose,datetime.datetime.now().time(),val_symb_loc)
         if er == 0 :
             self.listview_symb.insert('end',symbole_name)
 
@@ -347,6 +354,25 @@ class MainApp():
             self.frame_symb_info_max.grid(row=0,column=1,columnspan=2)
             self.open_frame_max_info = True
 
+    def date_chooser_event(self,event):
+        self.dialog_date = tk.Toplevel(self.root)
+        self.cal = Calendar(self.dialog_date)
+        self.cal.pack(side=tk.TOP)
+        button_annuler = tk.Button(self.dialog_date,text="Annuler")
+        button_annuler.bind("<Button-1>",self.annuler_date_chooser_event)
+        button_annuler.pack(side=tk.LEFT)
+        button_validate = tk.Button(self.dialog_date,text="Valider date")
+        button_validate.bind("<Button-1>",self.validate_date_chooser_event)
+        button_validate.pack(side=tk.RIGHT)
+
+    def annuler_date_chooser_event(self,event):
+        self.dialog_date.destroy()
+
+    def validate_date_chooser_event(self,event):
+        self.date_choose = self.cal.selection_get()
+        self.button_date_chooser.config(text=f"{self.date_choose}")
+        self.dialog_date.destroy()
+    
     def enter_val_loc(self,event):
         print("vous avez valider le prix loc du titre")
         taux_conv = 1
@@ -473,6 +499,7 @@ class MainApp():
         self.combobox_symbole_vente.current(0)
 
     def valid_vente(self,event):
+        self.date_choose = datetime.date.today()
         parts_vente = 0
         try :
             parts_vente = float(self.var_parts_vente.get())
@@ -507,9 +534,9 @@ class MainApp():
         except Exception as e:
             print(f"[Erreur] : {e}")
 
-        er = gf.write_vente_port(self.combobox_port_vente.get(),self.combobox_symbole_vente.get(),datetime.date.today(),parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
-        gf.write_vente_titre(self.combobox_symbole_vente.get(),datetime.date.today(),parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
-        gf.write_prix_symb(self.combobox_symbole_vente.get(),datetime.date.today(),datetime.datetime.now().time(),val_loc_vente)
+        er = gf.write_vente_port(self.combobox_port_vente.get(),self.combobox_symbole_vente.get(),self.date_choose,parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
+        gf.write_vente_titre(self.combobox_symbole_vente.get(),self.date_choose,parts_vente,val_loc_vente,taux_conv_vente,val_port_vente,frais_vente)
+        gf.write_prix_symb(self.combobox_symbole_vente.get(),self.date_choose,datetime.datetime.now().time(),val_loc_vente)
 
         if er == 0 :
             self.var_parts_vente.set("")
@@ -608,6 +635,10 @@ class MainApp():
         self.button_validate_vente = tk.Button(self.frame_vente_titre,text="Valider la vente")
         self.button_validate_vente.grid(row=2,column=3,padx=5,pady=5)
         self.button_validate_vente.bind("<Button-1>",self.valid_vente)
+        self.button_date_chooser = tk.Button(self.frame_achat_info,text="Choisir une date")
+        self.button_date_chooser.grid(row=3,column=2,padx=5,pady=5)
+        self.button_date_chooser.bind("<Button-1>",self.date_chooser_event)
+        
         self.frame_vente_titre.pack(side=tk.TOP,fill=tk.X)
 
         self.frame_vente_port.pack()
