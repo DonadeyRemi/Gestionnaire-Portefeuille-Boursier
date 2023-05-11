@@ -34,9 +34,7 @@ class MainApp():
         self.canvas_pie_patrimoine_tot.draw()
         self.canvas_pie_patrimoine_tot.get_tk_widget().grid(column=1,row=0,padx=10,pady=10)
 
-        self.fig_line_patrimoine_hist,self.ax_line_patrimoine_hist = plt.subplots(figsize=(10,5))
-        self.ax_line_patrimoine_hist.plot([0,1,2,4,5],[10,9,15,16,17])
-        self.ax_line_patrimoine_hist.set_title("Evolution du patrimoine")
+        self.fig_line_patrimoine_hist,self.ax_line_patrimoine_hist = creation_figure.figure_hist_patrimoine_tot(self.combobox_args.get())
 
         self.canvas_line_patrimoine_hist = FigureCanvasTkAgg(self.fig_line_patrimoine_hist,master=self.frame_dashboard)
         self.canvas_line_patrimoine_hist.draw()
@@ -69,9 +67,7 @@ class MainApp():
         self.canvas_pie_patrimoine_tot.draw()
         self.canvas_pie_patrimoine_tot.get_tk_widget().grid(column=1,row=0,padx=10,pady=10)
 
-        self.fig_line_patrimoine_hist,self.ax_line_patrimoine_hist = plt.subplots(figsize=(10,5))
-        self.ax_line_patrimoine_hist.plot([0,1,2,4,5],[10,9,15,16,17])
-        self.ax_line_patrimoine_hist.set_title("Evolution du patrimoine")
+        self.fig_line_patrimoine_hist,self.ax_line_patrimoine_hist = creation_figure.figure_hist_patrimoine_tot(self.combobox_args.get())
 
         self.canvas_line_patrimoine_hist = FigureCanvasTkAgg(self.fig_line_patrimoine_hist,master=self.frame_dashboard)
         self.canvas_line_patrimoine_hist.draw()
@@ -85,13 +81,16 @@ class MainApp():
         self.Menu.add_cascade(label="Acceuil",menu=self.menu_dashboard)
 
         self.menu_portefeuille = tk.Menu(self.Menu,tearoff=0)
-        self.menu_portefeuille.add_command(label="Analyse Portefeuille",command=self.event_ana_port)
-        self.menu_portefeuille.add_separator()
         self.menu_portefeuille.add_command(label="Nouveau portefeuille",command=self.event_menu_new_port)
         self.menu_portefeuille.add_command(label="Achat titre",command=self.event_achat_titre)
         self.menu_portefeuille.add_command(label="Vente titre",command=self.event_vente_titre)
         self.menu_portefeuille.add_command(label="Ajouter dividende",command=self.event_dividende)
-        self.Menu.add_cascade(label="Portefeuille",menu=self.menu_portefeuille)
+        self.Menu.add_cascade(label="Edit Portefeuille",menu=self.menu_portefeuille)
+
+        self.menu_analyse = tk.Menu(self.Menu,tearoff=0)
+        self.menu_analyse.add_command(label="Analyse Portefeuille",command=self.event_ana_port)
+        self.Menu.add_cascade(label="Analyse",menu=self.menu_analyse)
+        
 
         self.menu_symbole = tk.Menu(self.Menu,tearoff=0)
         self.menu_symbole.add_command(label="Ajouter symbole",command=self.event_add_symb)
@@ -151,6 +150,12 @@ class MainApp():
         except Exception as e:
             print(f"[Erreur] : {e}")
             print("le frame vente titre n'existe pas")
+
+        try : 
+            self.frame_analyse_port.destroy()
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+            print("le frame analyse portefeuille existe pas")
         
         self.create_frame_new_port()
         
@@ -317,7 +322,7 @@ class MainApp():
                 writer = csv.writer(symb_info_file)
                 writer.writerow(liste_info_symb)
 
-        er = gf.write_achat_port(nom_portfeuille,symbole_name,str(self.date_choose),parts,val_symb_loc,val_symb_port,frais_achat)
+        er = gf.write_achat_port(nom_portfeuille,symbole_name,self.combobox_devise.get(),taux_conv_achat,str(self.date_choose),parts,val_symb_loc,val_symb_port,frais_achat)
         gf.write_achat_titre(symbole_name,str(self.date_choose),parts,val_symb_loc,taux_conv_achat,val_symb_port,frais_achat)
         gf.write_prix_symb(symbole_name,str(self.date_choose),datetime.datetime.now().time(),val_symb_loc)
         if er == 0 :
@@ -420,7 +425,96 @@ class MainApp():
 
     def event_ana_port(self):
         #fonction evenement pour l'analyse d'un portefeuille
-        pass
+        self.frame_dashboard.pack_forget()
+        try : 
+            self.frame_new_port.destroy()
+            self.frame_achat_titre.destroy()
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame nv port existe pas")
+        
+        try : 
+            self.frame_achat_port.destroy()
+            self.frame_achat_titre_port.destroy()
+
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame achat titre existe pas")
+
+        try :
+            self.frame_vente_port.destroy()
+
+        except Exception as e:
+            print(f"[Erreur] : {e}")
+            print("le frame vente titre existe pas")
+
+        try : 
+            self.frame_analyse_port.destroy()
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+            print("le frame analyse portefeuille existe pas")
+
+
+        self.create_frame_analyse_port()
+
+    def create_frame_analyse_port(self):
+        self.frame_analyse_port = tk.Frame(self.root)
+
+        frame_info = tk.Frame(self.frame_analyse_port)
+
+        label_name_port = tk.Label(frame_info,text="Portefeuille")
+        label_name_port.grid(row=0,column=0,padx=5)
+
+        self.combobox_port_ana = ttk.Combobox(frame_info,values=gf.portfeuilles_existant())
+        self.combobox_port_ana.current(0)
+        self.combobox_port_ana.grid(row=0,column=1,padx=5)
+        self.combobox_port_ana.bind("<<ComboboxSelected>>",self.event_new_ana)
+
+        label_args = tk.Label(frame_info,text="Agruments à afficher")
+        label_args.grid(row=0,column=2)
+
+        self.combobox_args_ana = ttk.Combobox(frame_info,values=["parts","somme_inv_loc","somme_inv_port","somme_act_loc","somme_act_port"])
+        self.combobox_args_ana.current(1)
+        self.combobox_args_ana.grid(row=0,column=3)
+        self.combobox_args_ana.bind("<<ComboboxSelected>>",self.event_new_ana)
+
+        frame_info.pack(side=tk.TOP,fil=tk.X)
+
+        self.frame_graph = tk.Frame(self.frame_analyse_port)
+
+        self.fig_evo_port,self.ax_evo_port = creation_figure.figure_ev_port(self.combobox_port_ana.get(),self.combobox_args_ana.get())
+        self.canvas_evo_port_ana = FigureCanvasTkAgg(self.fig_evo_port, master=self.frame_graph)  # A tk.DrawingArea.
+        self.canvas_evo_port_ana.draw()
+        self.canvas_evo_port_ana.get_tk_widget().grid(row=0,column=0,columnspan=2)
+
+        self.fig_pie_port,self.ax_pie_port = creation_figure.repartition_actifs_parts(self.combobox_port_ana.get(),self.combobox_args_ana.get())
+
+        self.canvas_pie_port_ana = FigureCanvasTkAgg(self.fig_pie_port, master=self.frame_graph)  # A tk.DrawingArea.
+        self.canvas_pie_port_ana.draw()
+        self.canvas_pie_port_ana.get_tk_widget().grid(row=1,column=0)
+
+        self.frame_graph.pack(side=tk.TOP)
+
+        self.frame_analyse_port.pack()
+
+    def event_new_ana(self,event):
+        self.frame_graph.destroy()
+        self.frame_graph = tk.Frame(self.frame_analyse_port)
+
+        self.fig_evo_port,self.ax_evo_port = creation_figure.figure_ev_port(self.combobox_port_ana.get(),self.combobox_args_ana.get())
+        self.canvas_evo_port_ana = FigureCanvasTkAgg(self.fig_evo_port, master=self.frame_graph)  # A tk.DrawingArea.
+        self.canvas_evo_port_ana.draw()
+        self.canvas_evo_port_ana.get_tk_widget().grid(row=0,column=0,columnspan=2)
+
+        self.fig_pie_port,self.ax_pie_port = creation_figure.repartition_actifs_parts(self.combobox_port_ana.get(),self.combobox_args_ana.get())
+
+        self.canvas_pie_port_ana = FigureCanvasTkAgg(self.fig_pie_port, master=self.frame_graph)  # A tk.DrawingArea.
+        self.canvas_pie_port_ana.draw()
+        self.canvas_pie_port_ana.get_tk_widget().grid(row=1,column=0)
+
+        self.frame_graph.pack(side=tk.TOP)
+
+
 
     def create_frame_achat_port(self):
         self.frame_achat_port = tk.Frame(self.root)
@@ -475,6 +569,12 @@ class MainApp():
         except Exception as e:
             print(f"[Erreur] : {e}")
             print("le frame vente titre existe pas")
+
+        try : 
+            self.frame_analyse_port.destroy()
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+            print("le frame analyse portefeuille existe pas")
 
         self.create_frame_achat_port()
 
@@ -582,6 +682,12 @@ class MainApp():
             print(f"[Erreur] : {e}")
             print("le frame nv port existe pas")
 
+        try : 
+            self.frame_analyse_port.destroy()
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+            print("le frame analyse portefeuille existe pas")
+
         self.create_frame_vente_port()
 
     def create_frame_vente_port(self):
@@ -673,13 +779,24 @@ class MainApp():
         self.button_date_chooser.pack(side=tk.TOP)
         self.button_date_chooser.bind("<Button-1>",self.date_chooser_event)
 
-        label_prix_update = tk.Label(toplevel_update_symb,text="Prix (locale)")
-        label_prix_update.pack(side=tk.LEFT)
+        frame_entry = tk.Frame(toplevel_update_symb)
+
+        label_taux_conv_update = tk.Label(frame_entry,text="Taux de conversion (port/loc)")
+        label_taux_conv_update.grid(row=0,column=0,padx=5,pady=5)
+
+        self.var_taux_conv_update = tk.StringVar()
+        entry_taux_conv_update = tk.Entry(frame_entry,textvariable=self.var_taux_conv_update)
+        entry_taux_conv_update.grid(row=0,column=1,padx=5,pady=5)
+
+        label_prix_update = tk.Label(frame_entry,text="Prix (locale)")
+        label_prix_update.grid(row=1,column=0,padx=5,pady=5)
 
         self.var_prix_update = tk.StringVar()
-        entry_prix_update = tk.Entry(toplevel_update_symb,textvariable=self.var_prix_update)
-        entry_prix_update.pack(side=tk.RIGHT)
+        entry_prix_update = tk.Entry(frame_entry,textvariable=self.var_prix_update)
+        entry_prix_update.grid(row=1,column=1,padx=5,pady=5)
         entry_prix_update.bind("<Return>",self.validate_update_symb_event)
+
+        frame_entry.pack(side=tk.TOP)
 
         button_validate_update_prix_symb = tk.Button(toplevel_update_symb,text="Valider le prix")
         button_validate_update_prix_symb.bind("<Button-1>",self.validate_update_symb_event)
@@ -687,14 +804,21 @@ class MainApp():
 
     def validate_update_symb_event(self,event):
         self.date_choose = datetime.date.today()
-        prix_symb_update = 0 
+        prix_symb_update = 0
+        taux_conv_update = 1
         try : 
             prix_symb_update = float(self.var_prix_update.get())
 
         except Exception as e :
             print(f"[Erreur] : {e}")
 
-        gf.write_prix_symb(self.combobox_symb.get(),self.date_choose,datetime.datetime.now().time(),prix_symb_update)
+        try : 
+            taux_conv_update = float(self.var_taux_conv_update.get())
+
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+
+        gf.write_prix_symb(self.combobox_symb.get(),self.date_choose,datetime.datetime.now().time(),prix_symb_update,taux_conv_update)
 
     def event_show_dash(self):
         try : 
@@ -718,6 +842,12 @@ class MainApp():
         except Exception as e:
             print(f"[Erreur] : {e}")
             print("le frame vente titre n'existe pas")
+        
+        try : 
+            self.frame_analyse_port.destroy()
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+            print("le frame analyse portefeuille existe pas")
 
         self.frame_dashboard.pack()
 

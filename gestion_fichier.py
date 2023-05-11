@@ -48,7 +48,7 @@ def write_dividend(symbole,date,valeur,frais,valeur_nette) :
     else : 
         return 0
     
-def write_achat_port(port_name,symbole,date,parts,val_symb_loc,val_symb_port,frais):
+def write_achat_port(port_name,symbole,devise_port,taux_conv_achat,date,parts,val_symb_loc,val_symb_port,frais):
     erreur = 0
     if os.path.exists(f"ressources/portefeuilles/{port_name}.json") :
         try :
@@ -132,6 +132,28 @@ def write_achat_port(port_name,symbole,date,parts,val_symb_loc,val_symb_port,fra
         print(f"[Erreur] : {e}")
 
     add_line_patrimoine_hist()
+
+    #mise a jour du prix de la devise
+    devise_symb = "EUR"
+    try : 
+        with open(f"ressources/symboles_infos.csv",'r',newline='') as file_symb :
+            for row in csv.reader(file_symb) :
+                if row[0] == symbole :
+                    devise_symb = row[3]
+
+    except Exception as e:
+        print(f"[Erreur] : {e}")
+
+    try :
+        with open(f"ressources/prix/{devise_port}_{devise_symb}.csv",'a',newline='') as devise_hist_file :
+            writer = csv.writer(devise_hist_file)
+            writer.writerow([date,datetime.datetime.now().time(),taux_conv_achat])
+
+    except Exception as e :
+        print(f"[Erreur] : {e}")
+
+    
+    
 
     return erreur
 
@@ -290,7 +312,7 @@ def write_new_symb(symbole,nom,domaine,pays):
 
     return erreur
 
-def write_prix_symb(symbole,date,heure,prix_cloture_loc):
+def write_prix_symb(symbole,date,heure,prix_cloture_loc,taux_conv):
     erreur = 0
     prix_info = [date,heure,prix_cloture_loc]
     try :
@@ -302,6 +324,12 @@ def write_prix_symb(symbole,date,heure,prix_cloture_loc):
         print(f"[Erreur] : {e}")
         erreur = -1
 
+    #on met a jour le prix dans les portefeuilles
+    port_list = portfeuilles_existant()
+    for port_name in port_list :
+        if symbole in symboles_portefeuilles(port_name):
+            upload_symbole_val_port(port_name,symbole,prix_cloture_loc,prix_cloture_loc/taux_conv)
+    
     return erreur
 
 
@@ -343,19 +371,20 @@ def add_line_patrimoine_hist():
     for root, directories, files in os.walk("ressources/portefeuilles/history"):  
         if i <=  0 :
             for file in files: # les file sont les fichiers json des portefeuilles à jours
-                with open(f"ressources/portefeuilles/history/{file}",'r',newline='') as file_hist_port :
-                    last_line = None
-                    for row in csv.reader(file_hist_port) :
-                        last_line = row
+                if file != "patrimoine_hist.csv":
+                    with open(f"ressources/portefeuilles/history/{file}",'r',newline='') as file_hist_port :
+                        last_line = None
+                        for row in csv.reader(file_hist_port) :
+                            last_line = row
 
-                    parts_pat += float(last_line[2])
-                    somme_inv_loc_pat += float(last_line[3])
-                    somme_inv_port_pat += float(last_line[4])
-                    somme_act_loc_pat += float(last_line[5])
-                    somme_act_port_pat += float(last_line[6])
-                    frais_ac_vt_pat += float(last_line[7])
-                    dividendes_pat += float(last_line[8])
-                    frais_div_pat += float(last_line[9])
+                        parts_pat += float(last_line[2])
+                        somme_inv_loc_pat += float(last_line[3])
+                        somme_inv_port_pat += float(last_line[4])
+                        somme_act_loc_pat += float(last_line[5])
+                        somme_act_port_pat += float(last_line[6])
+                        frais_ac_vt_pat += float(last_line[7])
+                        dividendes_pat += float(last_line[8])
+                        frais_div_pat += float(last_line[9])
 
         i += 1
 

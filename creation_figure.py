@@ -21,13 +21,12 @@ def repartition_actifs_parts(portefeuille,arg="parts"):
         liste_arg.append(dict_port[symb][arg])
 
     # création de la figure
-    fig,ax = plt.subplots(figsize=(8,8))
+    fig,ax = plt.subplots()
     ax.pie(liste_arg,labels=dict_port.keys())
 
     ax.set_title(f"Répartitions des actifs par {arg}")
-    plt.legend()
 
-    return erreur,fig
+    return fig,ax
 
 def figures_patrimoine_tot(arg="somme_act_port",):
     patrimoine_tot_list = []
@@ -64,13 +63,41 @@ def figures_patrimoine_tot(arg="somme_act_port",):
     return fig,ax,patrimoine_tot
 
 def figure_hist_patrimoine_tot(arg="somme_act_port"):
-    data = pandas.read_csv("ressources/portefeuilles/history/patrimoine_hist.csv")
+    data = pandas.read_csv("ressources/portefeuilles/history/patrimoine_hist.csv",names=["date","time","parts","somme_inv_port","somme_inv_loc","somme_act_port","somme_act_loc","frais_ac_vt","dividendes","frais_div"])
     
-    plt.plot(data)
+    print(data.head())
     
+    fig,ax = plt.subplots(figsize=(8,5))
+    ax.set_title(f"Evolution de du patrimoine arg = {arg}")
+    ax.plot(data["date"],data[arg])
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Patrimoine")
+    plt.legend()
+
+    #plt.show()
+
+    return fig,ax
+
+def figure_ev_port(port_name,arg="somme_act_port"):
+    data = pandas.read_csv(f"ressources/portefeuilles/history/{port_name}_history.csv",names=["date","time","parts","somme_inv_port","somme_inv_loc","somme_act_port","somme_act_loc","frais_ac_vt","dividendes","frais_div"])
+    
+    print(data.head())
+    
+    fig,ax = plt.subplots(figsize=(8,5))
+    ax.set_title(f"Evolution de du patrimoine arg = {arg}")
+    ax.plot(data["date"],data[arg])
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Patrimoine")
+    plt.legend()
+
+    #plt.show()
+
+    return fig,ax
+
     
 
 
 
 if __name__ == "__main__" :
-    figure_hist_patrimoine_tot()
+    fig,ax = repartition_actifs_parts("XTB",arg="somme_act_port")
+    plt.show()
