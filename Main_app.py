@@ -753,7 +753,65 @@ class MainApp():
 
     def event_dividende(self):
         #callback menu pour ajouter un dividende sur un titre toujours dans au moins un portfeuille
-        pass
+        self.create_top_level_div()
+
+    def create_top_level_div(self):
+        self.top_level_div = tk.Toplevel(self.root)
+
+        list_port = gf.portfeuilles_existant()
+        list_symb = []
+        for port_name in list_port :
+            for symb in gf.symboles_portefeuilles(port_name) :
+                if symb in list_symb :
+                    list_symb.append(symb)
+
+        self.combobox_symb_div = ttk.Combobox(self.top_level_div,values=list_symb)
+        self.combobox_symb_div.current(0)
+        self.combobox_symb_div.pack(side=tk.TOP)
+
+        frame_info = tk.Frame(self.top_level_div)
+
+        label_valeur_div = tk.Label(frame_info,text="Valeur dividende (port)")
+        label_valeur_div.grid(row=0,column=0,padx=5,pady=5)
+
+        self.var_div_val = tk.StringVar()
+        entry_div_val = tk.Entry(frame_info,textvariable=self.var_div_val)
+        entry_div_val.grid(row=0,column=1,padx=5,pady=5)
+
+        label_div_frais = tk.Label(frame_info,text="Frais dividende")
+        label_div_frais.grid(row=1,column=1,padx=5,pady=5)
+        
+        self.var_div_frais = tk.StringVar()
+        entry_div_frais = tk.Entry(frame_info,textvariable=self.var_div_frais)
+        entry_div_frais.grid(row=1,column=1,padx=5,pady=5)
+
+        self.button_date_chooser = tk.Button(frame_info,text="Choisir une date")
+        self.button_date_chooser.grid(row=2,column=0,padx=5,pady=5)
+        self.button_date_chooser.bind("<Button-1>",self.date_chooser_event)
+
+        button_validate_div = tk.Button(frame_info,text="Validate")
+        button_validate_div.grid(row=2,column=1,padx=5,pady=5)
+        button_validate_div.bind("<Button-1>",self.event_validate_div)
+
+    def event_validate_div(self,event):
+        valeur_div = 0
+        frais_div = 0
+        try :
+            valeur_div = float(self.var_div_val.get())
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+
+        try : 
+            frais_div = float(self.var_div_frais.get())
+        except Exception as e :
+            print(f"[Erreur] : {e}")
+
+        if self.date_choose == None :
+            self.date_choose = datetime.datetime.today()
+
+        gf.write_dividend(self.combobox_symb_div.get(),self.date_choose,valeur_div,frais_div,valeur_div - frais_div)
+
+        self.top_level_div.destroy()
 
     def event_add_symb(self):
         #callback menu pour ajouter un nouveau symbole dans le fichier info symbole ainsi que dans le fichier history correspondant
@@ -803,7 +861,8 @@ class MainApp():
         button_validate_update_prix_symb.pack(side=tk.BOTTOM)
 
     def validate_update_symb_event(self,event):
-        self.date_choose = datetime.date.today()
+        if self.date_choose == None :
+            self.date_choose = datetime.datetime.today()
         prix_symb_update = 0
         taux_conv_update = 1
         try : 

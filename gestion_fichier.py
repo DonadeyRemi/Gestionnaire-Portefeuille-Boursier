@@ -40,13 +40,11 @@ def write_dividend(symbole,date,valeur,frais,valeur_nette) :
         with open("ressources/dividendes.csv",'a',newline='') as div_file :
             writer_obj = csv.writer(div_file)
             writer_obj.writerow(dividende)
-
     except Exception as e :
         print(f"[Erreur] : {e}")
-        return -1
+        
     
-    else : 
-        return 0
+    write_div_port(symbole,date,valeur,frais)
     
 def write_achat_port(port_name,symbole,devise_port,taux_conv_achat,date,parts,val_symb_loc,val_symb_port,frais):
     erreur = 0
@@ -265,38 +263,53 @@ def upload_symbole_val_port(port_name,symbole,valeur_act_loc,valeur_act_port):
 
     return erreur
 
-def write_div_port(port_name,symbole,date,valeur,frais,valeur_nette):
-    erreur = 0
-    if os.path.exists(f"ressources/portefeuilles/{port_name}.json") :
-        try :
-            with open(f"ressources/portefeuilles/{port_name}.json",'r') as port_file:
-                port_dict = json.load(port_file)
+def write_div_port(symbole,date,valeur,frais):
+    data = None
+    list_port = portfeuilles_existant()
+    for port_name in list_port :
+        if symbole in symboles_portefeuilles(port_name) :
+            try : 
+                with open(f"ressources/portefeuilles/{port_name}.json",'r') as port_file :
+                    data = json.load(port_file)
+            except Exception as e :
+                print(f"[Erreur] : {e}")
 
+            if data != None :
+                data[symbole]["dividende"] += valeur
+                data[symbole]["frais_div"] += frais
+            
+            try :
+                with open(f"ressources/portefeuilles/{port_name}.json",'w') as port_file :
+                    json.dump(data,port_file)
+            except Exception as e :
+                print(f"[Erreur] : {e}")
 
-        except Exception as e :
-            print(f"[Erreur] : {e}")
-            return -2
-        
-        if port_dict.get(symbole,0) == 0 :
-            return -5
+            if data != None : 
+                parts_tot = 0
+                somme_inv_loc_tot = 0
+                somme_inv_port_tot = 0
+                somme_act_loc_tot = 0
+                somme_act_port_tot = 0
+                frais_ac_vt_tot = 0
+                dividendes_tot = 0
+                frais_div_tot = 0
+                for symb in data.keys():
+                    parts_tot += data[symb]["parts"]
+                    somme_inv_loc_tot += data[symb]["somme_inv_loc"]
+                    somme_inv_port_tot += data[symb]["somme_inv_port"]
+                    somme_act_loc_tot += data[symb]["somme_act_loc"]
+                    somme_act_port_tot += data[symb]["somme_act_port"]
+                    frais_ac_vt_tot += data[symb]["frais_ac_vt"]
+                    dividendes_tot += data[symb]["dividende"]
+                    frais_div_tot += data[symb]["frais_div"]
+                port_list_info = [date,datetime.datetime.now().time(),parts_tot,somme_inv_loc_tot,somme_inv_port_tot,somme_act_loc_tot,somme_act_port_tot,frais_ac_vt_tot,dividendes_tot,frais_div_tot]
+                try : 
+                    with open(f"ressources/portefeuilles/history/{port_name}_history.csv",'a',newline='') as port_hist_file :
+                        writer = csv.writer(port_hist_file)
+                        writer.writerow(port_list_info)
 
-        else :
-            port_dict[symbole]["dividende"] += valeur
-            port_dict[symbole]["frais_div"] += frais
-
-
-        try :
-            with open(f"ressources/portefeuilles/{port_name}.json",'w') as port_file:
-                json.dump(port_dict,port_file)
-
-        except Exception as e :
-            print(f"[Ereur] : {e}")
-            return -3 
-        
-    else :
-        erreur = -6
-
-    return erreur
+                except Exception as e :
+                    print(f"[Erreur] : {e}")
 
 def write_new_symb(symbole,nom,domaine,pays):
     erreur = 0
